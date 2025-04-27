@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Login • Instagram{% endblock %}
+
+{% block content %}
+
+<div class="form-container text-center">
+    <img src="{% static 'img/instagram-logo.png' %}" alt="Instagram" width="150" class="mb-3">
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+        <div class="mb-2">
+            {% render_field field class="form-control" placeholder=field.label %}
+            {% for error in field.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-blue w-100">Log in</button>
+    </form>
+
+    <div class="mt-2">
+        <p class="text-muted">OR</p>
+        <a href="#" class="text-primary">Log in with Facebook</a>
+    </div>
+
+    <div class="mt-2">
+        <a href="#" class="text-muted small">Forgot password?</a>
+    </div>
+</div>
+
+<div class="form-container text-center mt-3">
+    <p class="m-0">Don't have an account? <a href="{% url 'accounts:signup' %}" class="text-primary">Sign up</a></p>
+</div>
+
+<div class="text-center mt-4">
+    <p class="text-muted">Get the app.</p>
+    <div class="d-flex justify-content-center gap-2">
+        <a href="https://play.google.com/store/apps/details?id=com.instagram.android">
+            <img src="{% static 'img/google-playstore.png' %}" height="40">
+        </a>
+        <a href="https://apps.microsoft.com/store/detail/instagram/9NBLGGH5L9XT">
+            <img src="{% static 'img/microsoft.png' %}" height="40">
+        </a>
+    </div>
+</div>
+
+{% endblock %}
