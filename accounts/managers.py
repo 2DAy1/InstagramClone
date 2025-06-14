@@ -18,7 +18,7 @@ class UserManager(BaseUserManager):
         phone = extra_fields.get('phone_number')
 
         if not email and not phone:
-            raise ValueError("Необхідно вказати хоча б email або номер телефону.")
+            raise ValueError("You must provide at least an email or phone number.")
 
         if email:
             extra_fields['email'] = self.normalize_email(email)

@@ -13,7 +13,6 @@ class AccountsViewsTests(TestCase):
         self.logout_url = reverse('accounts:logout')
         self.home_url = reverse('posts:home')
 
-        # Створимо тестового користувача
         self.user = User.objects.create_user(
             username="testuser",
             full_name="Test User",
@@ -22,9 +21,6 @@ class AccountsViewsTests(TestCase):
         )
 
     def test_signup_view_success(self):
-        """
-        Перевіряємо успішну реєстрацію користувача
-        """
         response = self.client.post(self.signup_url, {
             'username': 'newuser',
             'full_name': 'New User',
@@ -33,7 +29,7 @@ class AccountsViewsTests(TestCase):
             'password2': 'newpassword123',
         })
 
-        self.assertEqual(response.status_code, 302)  # Redirect
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, self.home_url)
         self.assertTrue(User.objects.filter(username='newuser').exists())
 

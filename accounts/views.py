@@ -34,7 +34,7 @@ def login_view(request):
 
             if user is not None:
                 login(request, user)
-                return redirect('posts:home')
+                return redirect('posts:home', username=user.username)
             else:
                 form.add_error(None, "Invalid credentials.")
     else:

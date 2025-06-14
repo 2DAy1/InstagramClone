@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="form-container mx-auto mt-5" style="max-width: 500px;">
+    <h3 class="text-center mb-4">Edit Profile</h3>
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- Аватар + кнопка -->
+        <div class="text-center mb-3">
+            <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="rounded-circle mb-2" width="100" height="100">
+            <br>
+            <label for="id_avatar" class="btn btn-outline-secondary btn-sm">Change Profile Photo</label>
+            {{ form.avatar }}
+        </div>
+
+        <!-- Full name -->
+        <div class="mb-3">
+            {{ form.bio.label_tag }}
+            {% render_field form.bio class="form-control" placeholder="Your bio" %}
+        </div>
+
+        <!-- Location -->
+        <div class="mb-3">
+            {{ form.location.label_tag }}
+            {% render_field form.location class="form-control" placeholder="Your location" %}
+        </div>
+
+        <!-- Birth Date -->
+        <div class="mb-3">
+            {{ form.birth_date.label_tag }}
+            {% render_field form.birth_date class="form-control" type="date" %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+</div>
+
+<style>
+    /* Приховує стандартний file input */
+    #id_avatar {
+        display: none;
+    }
+</style>
+{% endblock %}

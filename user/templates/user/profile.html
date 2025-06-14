@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile.user.username }}'s Profile{% endblock %}
+
+{% block content %}
+  <div class="container text-center">
+    {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" alt="Avatar" class="rounded-circle" width="150" height="150">
+    {% else %}
+      <img src="{% static 'img/default_avatar.jpg' %}" alt="Avatar" class="rounded-circle" width="150" height="150">
+    {% endif %}
+
+    <h2 class="mt-2">{{ profile.user.username }}</h2>
+    <p>{{ profile.bio }}</p>
+
+    {% if request.user == profile.user %}
+      <a href="{% url 'user:edit_profile' %}" class="btn btn-primary mt-3">Edit Profile</a>
+    {% endif %}
+  </div>
+{% endblock %}
