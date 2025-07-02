@@ -26,7 +26,7 @@
     <a href="#" class="nav-link"><i class="bi bi-camera-reels"></i> Reels</a>
     <a href="#" class="nav-link"><i class="bi bi-chat-dots"></i> Повідомлення</a>
     <a href="#" class="nav-link"><i class="bi bi-heart"></i> Сповіщення</a>
-    <a href="#" class="nav-link"><i class="bi bi-plus-square"></i> Створити</a>
+    <a href="{% url 'posts:create' %}" class="nav-link"><i class="bi bi-plus-square"></i> Створити</a>
     <a href="{% url 'user:profile' username=request.user.username %}" class="nav-link">
         {% if request.user.profile.avatar %}
             <img src="{{ request.user.profile.avatar.url }}" class="rounded-circle me-2" width="24" height="24">
