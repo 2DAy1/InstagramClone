@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import PostForm
+from .forms import PostForm, CommentForm
 from .services import CreatePostService
-from .models import Post
+from .models import Post, Comment
 
 @login_required
 def home_view(request):
@@ -21,3 +21,6 @@ def create_post(request):
         form = PostForm()
     return render(request, 'posts/create_post.html', {"form":form})
 
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    comments = post.comments.select_related('author').order_by('-created_at')
