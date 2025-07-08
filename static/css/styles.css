@@ -1,11 +1,24 @@
+/* styles.css */
+
+/* сам sidebar */
 .sidebar {
     width: 240px;
     height: 100vh;
     position: fixed;
+    top: 0;
+    left: 0;
     background-color: black;
     color: white;
+    z-index: 1000; /* щоб він завжди був поверх фону */
 }
 
+/* відсуваємо весь основний контент праворуч */
+body > .container {
+    margin-left: 240px; /* відступ зліва на ширину sidebar */
+    padding-top: 1rem;  /* якщо хочеш трохи простору зверху */
+}
+
+/* існуючі стилі */
 .nav-link {
     color: white;
     font-size: 18px;
