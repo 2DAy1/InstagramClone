@@ -10,9 +10,6 @@ User = get_user_model()
 
 
 def profile_view(request, username):
-    """
-    View for displaying user profile based on username.
-    """
     user = get_object_or_404(User, username=username)
     profile = get_object_or_404(Profile, user=user)
     return render(request, 'user/profile.html', {'profile': profile})
@@ -20,9 +17,6 @@ def profile_view(request, username):
 
 @login_required
 def edit_profile_view(request):
-    """
-    View for editing the user's profile.
-    """
     profile = get_object_or_404(Profile, user=request.user)
 
     if request.method == 'POST':
