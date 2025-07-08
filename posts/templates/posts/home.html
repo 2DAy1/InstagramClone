@@ -1,8 +1,5 @@
+{# posts/templates/posts/home.html #}
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}Home{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
   <h2 class="text-center mb-4">Latest Posts</h2>
@@ -15,24 +12,25 @@
       </div>
       <div class="card-body">
         <p>{{ post.caption }}</p>
+        <div class="post-item">
+          {% with post.images.first as img %}
+            {% if img %}
+              <img
+                src="{% url 'posts:thumbnail' post_pk=post.pk image_pk=img.pk %}"
+                alt="Preview"
+                style="width:150px; height:150px; object-fit:cover;"
+              >
+            {% endif %}
+          {% endwith %}
 
-        {% if post.images.all %}
-          <div class="row">
-            {% for image in post.images.all %}
-              <div class="col-md-4 mb-3">
-                <img src="{{ image.image.url }}" class="img-fluid rounded" alt="Post image">
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        {% if post.tags.all %}
-          <p>
-            {% for tag in post.tags.all %}
-              <span class="badge bg-secondary">#{{ tag.name }}</span>
-            {% endfor %}
-          </p>
-        {% endif %}
+          {% if post.tags.all %}
+            <p>
+              {% for tag in post.tags.all %}
+                <span class="badge bg-secondary">#{{ tag.name }}</span>
+              {% endfor %}
+            </p>
+          {% endif %}
+        </div>
       </div>
     </div>
   {% empty %}

@@ -1,7 +1,9 @@
 from django.db import models
-
-from django.db import models
 from django.conf import settings
+
+
+def post_image_upload_path(instance, filename):
+    return f'posts/user_{instance.post.author.id}/post_{instance.post.id}/{filename}'
 
 
 class Post(models.Model):
@@ -13,16 +15,19 @@ class Post(models.Model):
         return f"Post by {self.author.username}"
 
 
-def post_image_upload_path(instance, filename):
-    return f'posts/user_{instance.post.author.id}/{filename}'
-
-
-class Image(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to=post_image_upload_path)
+class PostImage(models.Model):
+    post = models.ForeignKey(
+        'Post',
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    image = models.ImageField(
+        upload_to=post_image_upload_path
+    )
 
     def __str__(self):
         return f"Image for Post {self.post.id}"
+
 
 
 class Comment(models.Model):

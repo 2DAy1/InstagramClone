@@ -1,5 +1,5 @@
 from django import forms
-from .models import Post, Comment
+from .models import Post,Comment
 from .fields import MultipleImageField
 
 class PostForm(forms.ModelForm):
@@ -19,5 +19,5 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ['content']
         widgets = {
-            'content':forms.Textarea(attrs={'rows':2, 'placeholder': "Add a comment..."})
+            'content':forms.Textarea(attrs={'class': 'form-control', 'rows':2, 'placeholder': "Add a comment..."})
         }

@@ -1,4 +1,4 @@
-from posts.models import Post, Image, Tag, PostTag
+from posts.models import Post, PostImage, Tag, PostTag
 from typing import Optional
 
 class CreatePostService:
@@ -21,7 +21,7 @@ class CreatePostService:
     def _save_images(self):
         images = self.form.files.getlist("images")
         for image in images:
-            Image.objects.create(post=self.post, image=image)
+            PostImage.objects.create(post=self.post, image=image)
 
     def _assign_tags(self):
         raw_tags = self.form.cleaned_data.get('tags')
