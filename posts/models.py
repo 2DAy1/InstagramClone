@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 def post_image_upload_path(instance, filename):
-    return f'posts/user_{instance.post.author.id}/post_{instance.post.id}/{filename}'
+    return f'users/posts/user_{instance.post.author.id}/post_{instance.post.id}/{filename}'
 
 
 class Post(models.Model):

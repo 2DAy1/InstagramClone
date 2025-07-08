@@ -3,7 +3,7 @@ from django.conf import settings
 from django.templatetags.static import static
 
 def user_directory_path(instance, filename):
-    return f'user_{instance.user.id}/{filename}'
+    return f'users/avatars/user_{instance.user.id}/{filename}'
 
 
 class Profile(models.Model):

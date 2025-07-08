@@ -1,15 +1,29 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+
+from PIL import Image as PilImage
+from io import BytesIO
+
 from .forms import PostForm, CommentForm
 from .services import CreatePostService
-from .models import Post, Comment
+from .models import Post, Comment, Like, PostImage
+
+
 
 @login_required
 def home_view(request):
-    posts = Post.objects.all().order_by("-created_at")
-    return render(request, 'posts/home.html', {'posts':posts})
-
+    liked_subq = Like.objects.filter(post=OuterRef('pk'), user=request.user)
+    posts = (
+        Post.objects
+            .annotate(is_liked=Exists(liked_subq))
+            .order_by('-created_at')
+    )
+    return render(request, 'posts/home.html', {'posts': posts})
 
 @login_required
 def create_post(request):
@@ -22,20 +36,12 @@ def create_post(request):
         form = PostForm()
     return render(request, 'posts/create_post.html', {"form":form})
 
+
 @login_required
 def post_detail(request, pk):
-    qs = (
-        Post.objects
-            .select_related('author')
-            .prefetch_related(
-                'images',
-                Prefetch(
-                    'comments',
-                    queryset=Comment.objects.select_related('author')
-                )
-            )
-    )
-    post = get_object_or_404(qs, pk=pk)
+    liked_subq = Like.objects.filter(post=OuterRef('pk'), user=request.user)
+    post_qs = Post.objects.annotate(is_liked=Exists(liked_subq))
+    post = get_object_or_404(post_qs, pk=pk)
 
     # Закинути в окрему функцію create_comment
     if request.method == 'POST':
@@ -54,13 +60,6 @@ def post_detail(request, pk):
         'comment_form': form,
     })
 
-
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from .models import PostImage
-from PIL import Image as PilImage
-from io import BytesIO
-
 def thumbnail_view(request, post_pk, image_pk):
     img_obj = get_object_or_404(PostImage, pk=image_pk, post_id=post_pk)
     img = PilImage.open(img_obj.image.path)
@@ -77,3 +76,20 @@ def thumbnail_view(request, post_pk, image_pk):
     )
 
     return HttpResponse(buf.getvalue(), content_type='image/jpeg')
+
+
+@login_required
+@require_POST
+def like_post_ajax(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    like_qs = Like.objects.filter(post=post, user=request.user)
+    if like_qs.exists():
+        like_qs.delete()
+        liked = False
+    else:
+        Like.objects.create(post=post, user=request.user)
+        liked = True
+    return JsonResponse({
+        'liked': liked,
+        'likes_count': post.likes.count(),
+    })
