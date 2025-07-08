@@ -1,5 +1,6 @@
 from posts.models import Post, PostImage, Tag, PostTag
 from typing import Optional
+from django.db import transaction
 
 class CreatePostService:
     def __init__(self, user, form):
@@ -8,9 +9,10 @@ class CreatePostService:
         self.post: Optional[Post] = None
 
     def create(self):
-        self._create_post()
-        self._save_images()
-        self._assign_tags()
+        with transaction.atomic():
+            self._create_post()
+            self._save_images()
+            self._assign_tags()
         return self.post
 
     def _create_post(self):
@@ -20,12 +22,13 @@ class CreatePostService:
 
     def _save_images(self):
         images = self.form.files.getlist("images")
-        for image in images:
-            PostImage.objects.create(post=self.post, image=image)
+        objs = [PostImage(post=self.post, image=img) for img in images]
+        PostImage.objects.bulk_create(objs)
 
     def _assign_tags(self):
-        raw_tags = self.form.cleaned_data.get('tags')
-        tag_names = [tag.strip().lower() for tag in raw_tags.split(',') if tag.strip()]
-        for name in tag_names:
+        raw = self.form.cleaned_data['tags']
+        names = {t.strip().lower() for t in raw.split(',') if t.strip()}
+        PostTag.objects.filter(post=self.post).exclude(tag__name__in=names).delete()
+        for name in names:
             tag, _ = Tag.objects.get_or_create(name=name)
             PostTag.objects.get_or_create(post=self.post, tag=tag)

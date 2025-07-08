@@ -1,4 +1,3 @@
-{# posts/templates/posts/home.html #}
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
@@ -12,25 +11,34 @@
       </div>
       <div class="card-body">
         <p>{{ post.caption }}</p>
-        <div class="post-item">
+        <div class="post-item d-flex align-items-center">
           {% with post.images.first as img %}
             {% if img %}
               <img
                 src="{% url 'posts:thumbnail' post_pk=post.pk image_pk=img.pk %}"
                 alt="Preview"
                 style="width:150px; height:150px; object-fit:cover;"
+                class="me-3"
               >
             {% endif %}
           {% endwith %}
 
-          {% if post.tags.all %}
-            <p>
-              {% for tag in post.tags.all %}
-                <span class="badge bg-secondary">#{{ tag.name }}</span>
+          <a href="{% url 'posts:post_detail' post.pk %}"
+             class="btn btn-outline-primary">
+             Переглянути
+          </a>
+        </div>
+
+        {% with post.posttag_set.all as pts %}
+          {% if pts %}
+            <p class="mt-2">
+              {% for pt in pts %}
+                <span class="badge bg-secondary">#{{ pt.tag.name }}</span>
               {% endfor %}
             </p>
           {% endif %}
-        </div>
+        {% endwith %}
+
       </div>
     </div>
   {% empty %}

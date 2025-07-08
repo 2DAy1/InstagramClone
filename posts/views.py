@@ -45,11 +45,11 @@ def post_detail(request, pk):
             comment.post = post
             comment.author = request.user
             comment.save()
-            return redirect('post:post_detail', pk=post.pk)
+            return redirect('posts:post_detail', pk=post.pk)
     else:
         form = CommentForm()
 
-    return render(request, 'post/detail.html', {
+    return render(request, 'posts/detail.html', {
         'post': post,
         'comment_form': form,
     })
