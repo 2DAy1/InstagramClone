@@ -19,9 +19,7 @@ class Command(BaseCommand):
             return
 
         with transaction.atomic():
-            # Видалить користувачів + cascade‐видалить їх пости, коменти, лайки, зображення
             seed_users.delete()
-            # Видаляємо групу
             seed_group.delete()
 
         self.stdout.write(self.style.SUCCESS(

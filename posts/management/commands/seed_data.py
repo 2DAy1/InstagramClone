@@ -38,9 +38,6 @@ class Command(BaseCommand):
         )
 
     def _fetch_image(self, width=400, height=300):
-        """
-        Завантажує випадкову картинку з Picsum і повертає ContentFile з ім’ям.
-        """
         seed = uuid.uuid4().hex
         url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
         resp = requests.get(url)
@@ -49,7 +46,6 @@ class Command(BaseCommand):
         return ContentFile(resp.content, name=name)
 
     def handle(self, *args, **options):
-        # Розбір опцій (якщо передані — використовуються, інакше беруться значення default вище)
         num_users = options['users']
         num_posts = options['posts']
         num_comments = options['comments']
@@ -75,11 +71,9 @@ class Command(BaseCommand):
             users.append(u)
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(users)} seed users"))
 
-        # Пул тегів
         tag_names = list({fake.word() for _ in range(40)})[:20]
         tags = [Tag.objects.get_or_create(name=n)[0] for n in tag_names]
 
-        # Створюємо пости
         for user in users:
             for _ in range(num_posts):
                 with transaction.atomic():
@@ -88,16 +82,13 @@ class Command(BaseCommand):
                         caption=fake.sentence(nb_words=12),
                     )
 
-                    # 1–3 картинки з інтернету
                     for _ in range(random.randint(1, 3)):
                         img = self._fetch_image()
                         PostImage.objects.create(post=post, image=img)
 
-                    # 1–5 тегів
                     for t in random.sample(tags, k=random.randint(1, 5)):
                         PostTag.objects.get_or_create(post=post, tag=t)
 
-                    # Коментарі
                     for _ in range(num_comments):
                         commenter = random.choice(users)
                         Comment.objects.create(
@@ -106,7 +97,6 @@ class Command(BaseCommand):
                             content=fake.sentence(nb_words=8)
                         )
 
-                    # Лайки
                     for liker in random.sample(users, k=min(len(users), num_likes)):
                         Like.objects.get_or_create(post=post, user=liker)
 
