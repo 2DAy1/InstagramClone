@@ -51,7 +51,7 @@ class SignUpForm(forms.Form):
             username     = data['username'],
             full_name    = data['full_name'],
             email        = data['email'],
-            phone_number = data.get('phone_number', ''),
+            phone_number = data.get('phone_number') or None,
             password     = data['password1'],
             is_active    = False,
         )
