@@ -1,85 +1,92 @@
 from django.test import TestCase
+from django.contrib.auth import get_user_model
 from accounts.forms import SignUpForm
-from accounts.models import User
+
+User = get_user_model()
 
 
-class SignUpFromTests(TestCase):
-    def test_valid_form_with_email(self):
+class SignUpFormTests(TestCase):
+    def test_valid_with_email(self):
         form = SignUpForm(data={
-            'username': 'testuser',
-            'full_name': 'Test User',
-            'contact': 'test@example.com',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
+            'username':     'alice',
+            'full_name':    'Alice',
+            'email':        'alice@example.com',
+            'phone_number': '',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
         })
         self.assertTrue(form.is_valid())
 
-    def test_valid_form_with_phone(self):
+    def test_valid_with_phone(self):
         form = SignUpForm(data={
-            'username': 'testuser2',
-            'full_name': 'User Two',
-            'contact': '+380991234567',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
+            'username':     'bob',
+            'full_name':    'Bob',
+            'email':        'bob@example.com',
+            'phone_number': '+380991234567',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
         })
         self.assertTrue(form.is_valid())
 
-    def test_invalid_when_contact_empty(self):
+    def test_empty_email_and_phone(self):
         form = SignUpForm(data={
-            'username': 'testuser3',
-            'full_name': 'Empty Contact',
-            'contact': '',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
+            'username':     'charlie',
+            'full_name':    'Charlie',
+            'email':        '',
+            'phone_number': '',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
         })
         self.assertFalse(form.is_valid())
-        self.assertIn('contact', form.errors)
+        self.assertIn('email', form.errors)
 
-    def test_invalid_when_passwords_dont_match(self):
+    def test_password_mismatch(self):
         form = SignUpForm(data={
-            'username': 'testuser4',
-            'full_name': 'Mismatch',
-            'contact': 'email@example.com',
-            'password1': 'Pass123',
-            'password2': 'OtherPass456',
+            'username':     'dana',
+            'full_name':    'Dana',
+            'email':        'dana@example.com',
+            'phone_number': '',
+            'password1':    'Secret123',
+            'password2':    'Other123',
         })
         self.assertFalse(form.is_valid())
         self.assertIn('password2', form.errors)
 
-    def test_duplicate_email(self):
-        User.objects.create_user(username='existing', full_name='Exists', email='dupe@example.com', password='test123')
-        form = SignUpForm(data={
-            'username': 'newuser',
-            'full_name': 'New User',
-            'contact': 'dupe@example.com',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
-        })
-        self.assertFalse(form.is_valid())
-        self.assertIn('contact', form.errors)
-
-    def test_duplicate_phone(self):
-        User.objects.create_user(username='existing', full_name='Exists', phone_number='+380991234567',
-                                 password='test123')
-        form = SignUpForm(data={
-            'username': 'newuser',
-            'full_name': 'New User',
-            'contact': '+380991234567',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
-        })
-        self.assertFalse(form.is_valid())
-        self.assertIn('contact', form.errors)
-
     def test_duplicate_username(self):
-        User.objects.create_user(username='takenname', full_name='Taken', email='someone@example.com',
-                                 password='test123')
+        User.objects.create_user(username='eve', full_name='Eve', email='eve@x.com', password='pass')
         form = SignUpForm(data={
-            'username': 'takenname',
-            'full_name': 'New User',
-            'contact': 'new@example.com',
-            'password1': 'StrongPass123',
-            'password2': 'StrongPass123',
+            'username':     'eve',
+            'full_name':    'New Eve',
+            'email':        'new@x.com',
+            'phone_number': '',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
         })
         self.assertFalse(form.is_valid())
         self.assertIn('username', form.errors)
+
+    def test_duplicate_email(self):
+        User.objects.create_user(username='frank', full_name='Frank', email='frank@x.com', password='pass')
+        form = SignUpForm(data={
+            'username':     'frank2',
+            'full_name':    'Frank2',
+            'email':        'frank@x.com',
+            'phone_number': '',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_duplicate_phone(self):
+        User.objects.create_user(username='gina', full_name='Gina', email='gina@x.com', phone_number='+380991112223', password='pass')
+        form = SignUpForm(data={
+            'username':     'gina2',
+            'full_name':    'Gina2',
+            'email':        'gina2@x.com',
+            'phone_number': '+380991112223',
+            'password1':    'Secret123',
+            'password2':    'Secret123',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('phone_number', form.errors)

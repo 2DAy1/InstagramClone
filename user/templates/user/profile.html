@@ -17,5 +17,9 @@
     {% if request.user == profile.user %}
       <a href="{% url 'user:edit_profile' %}" class="btn btn-primary mt-3">Edit Profile</a>
     {% endif %}
+
+    <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger">
+      Logout
+    </a>
   </div>
 {% endblock %}
