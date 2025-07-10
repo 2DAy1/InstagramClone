@@ -1,25 +1,41 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}{{ profile.user.username }}'s Profile{% endblock %}
+{% load follow_tags %}
 
 {% block content %}
-  <div class="container text-center">
-    {% if profile.avatar %}
-      <img src="{{ profile.avatar.url }}" alt="Avatar" class="rounded-circle" width="150" height="150">
-    {% else %}
-      <img src="{% static 'img/default_avatar.jpg' %}" alt="Avatar" class="rounded-circle" width="150" height="150">
-    {% endif %}
+<div class="container text-center">
+  <img src="{{ profile.avatar_url }}"
+       class="rounded-circle"
+       width="150"
+       height="150">
+  <h2>{{ profile.user.username }}</h2>
+  <p>{{ profile.bio }}</p>
 
-    <h2 class="mt-2">{{ profile.user.username }}</h2>
-    <p>{{ profile.bio }}</p>
+  {% if request.user == profile.user %}
+  <div class="d-flex justify-content-center gap-4 mb-4">
+  <a href="{% url 'follow:followers' profile.user.username %}"
+     class="text-decoration-none">
+    <strong>{{ profile.user.followers_set.count }}</strong> Followers
+  </a>
+  <a href="{% url 'follow:following' profile.user.username %}"
+     class="text-decoration-none">
+    <strong>{{ profile.user.following_set.count }}</strong> Following
+  </a>
+</div>
 
-    {% if request.user == profile.user %}
-      <a href="{% url 'user:edit_profile' %}" class="btn btn-primary mt-3">Edit Profile</a>
-    {% endif %}
 
-    <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger">
+    <a href="{% url 'user:edit_profile' %}"
+       class="btn btn-primary mt-3">
+      Edit Profile
+    </a>
+    <a href="{% url 'accounts:logout' %}"
+       class="btn btn-outline-danger mt-3">
       Logout
     </a>
-  </div>
+  {% else %}
+    <div class="d-flex align-items-center justify-content-center mt-3">
+      {% follow_button profile.user %}
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('user/', include('user.urls', namespace='user')),
     path('posts/', include("posts.urls")),
+    path('follow/', include('follow.urls', namespace='follow')),
 ]
 
 if settings.DEBUG:

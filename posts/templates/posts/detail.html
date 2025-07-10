@@ -3,24 +3,33 @@
 
 {% block content %}
 <div class="container mt-5">
+
+  <!-- Автор та заголовок -->
   <div class="d-flex align-items-center mb-3">
-    {% if post.author.profile.avatar %}
-      <img src="{{ post.author.profile.avatar.url }}"
-           class="rounded-circle me-2" width="32" height="32">
-    {% endif %}
-    <div>
-      <h2 class="mb-0">{{ post.caption }}</h2>
-      <small class="text-muted">By {{ post.author.username }} on {{ post.created_at|date:"F j, Y, H:i" }}</small>
-    </div>
+    <a href="{% url 'user:profile' username=post.author.username %}"
+       class="d-flex align-items-center text-decoration-none text-dark me-3">
+      <img src="{{ post.author.profile.avatar_url }}"
+           alt="{{ post.author.username }}’s avatar"
+           class="rounded-circle me-2"
+           width="32" height="32">
+      <strong>{{ post.author.username }}</strong>
+    </a>
+    <small class="text-muted">
+      &middot; {{ post.created_at|date:"F j, Y, H:i" }}
+    </small>
   </div>
 
+  <!-- Зображення поста -->
   <div class="post-images mb-4">
     {% for img in post.images.all %}
       <img src="{% url 'posts:thumbnail' post_pk=post.pk image_pk=img.pk %}"
-           class="img-fluid mb-2" style="max-width:100%; object-fit:contain;">
+           alt="Post image"
+           class="img-fluid mb-2"
+           style="max-width:100%; object-fit:contain;">
     {% endfor %}
   </div>
 
+  <!-- Лайк -->
   <div class="d-flex align-items-center mb-4">
     <button type="button"
             class="btn like-btn
@@ -33,17 +42,23 @@
     </span>
   </div>
 
+  <!-- Коментарі -->
   <div class="comments mb-4">
     <h3>Comments ({{ post.comments.count }})</h3>
     {% for comment in post.comments.all %}
       <div class="mb-2">
-        <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
+        <a href="{% url 'user:profile' username=comment.author.username %}"
+           class="fw-bold text-decoration-none text-dark me-1">
+          {{ comment.author.username }}
+        </a>
+        {{ comment.content }}
       </div>
     {% empty %}
       <p>No comments yet.</p>
     {% endfor %}
   </div>
 
+  <!-- Форма додавання коментаря -->
   <div class="add-comment mb-5">
     <h4>Add a comment</h4>
     <form method="post">
@@ -53,6 +68,9 @@
     </form>
   </div>
 
-  <a href="{% url 'posts:home' %}" class="btn btn-secondary">Back to all posts</a>
+  <!-- Повернутися до списку -->
+  <a href="{% url 'posts:home' %}" class="btn btn-secondary">
+    Back to all posts
+  </a>
 </div>
 {% endblock %}

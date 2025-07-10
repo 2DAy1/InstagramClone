@@ -12,7 +12,8 @@ User = get_user_model()
 def profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile = get_object_or_404(Profile, user=user)
-    return render(request, 'user/profile.html', {'profile': profile})
+    return render(request, 'user/profile.html',
+                  {'profile': profile, 'profile_user':profile.user})
 
 
 @login_required
