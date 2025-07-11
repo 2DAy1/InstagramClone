@@ -22,8 +22,8 @@ class CreatePostService:
 
     def _save_images(self):
         images = self.form.files.getlist("images")
-        objs = [PostImage(post=self.post, image=img) for img in images]
-        PostImage.objects.bulk_create(objs)
+        for img in images:
+            PostImage.objects.create(post=self.post, image=img)
 
     def _assign_tags(self):
         raw = self.form.cleaned_data['tags']
