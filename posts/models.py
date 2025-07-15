@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 
 # def post_image_upload_path(instance, filename):
@@ -21,7 +22,7 @@ class PostImage(models.Model):
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image = models.ImageField(upload_to='posts/')
+    image = CloudinaryField('image')
 
     def __str__(self):
         return f"Image for Post {self.post.id}"

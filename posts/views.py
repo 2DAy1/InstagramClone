@@ -28,11 +28,22 @@ def create_post(request):
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            CreatePostService(request.user, form).create()
+            # Беремо завантажені файли прямо звідси
+            images = request.FILES.getlist("images")
+            tags = form.cleaned_data.get("tags", "")
+            caption = form.cleaned_data.get("caption", "")
+
+            # Передаємо масив файлів у сервіс
+            CreatePostService(
+                user=request.user,
+                caption=caption,
+                tags_raw=tags,
+                images=images
+            ).create()
             return redirect("posts:home")
     else:
         form = PostForm()
-    return render(request, 'posts/create_post.html', {"form":form})
+    return render(request, "posts/create_post.html", {"form": form})
 
 
 @login_required
