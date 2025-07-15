@@ -3,9 +3,6 @@ from .models import Profile
 
 
 class ProfileForm(forms.ModelForm):
-    """
-    From for editing user profile.
-    """
     class Meta:
         model = Profile
         fields = ['avatar', 'bio', 'location', 'birth_date']

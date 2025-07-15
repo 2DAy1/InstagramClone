@@ -16,6 +16,13 @@ def profile_view(request, username):
                   {'profile': profile, 'profile_user':profile.user})
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+from .forms import ProfileForm
+from .models import Profile
+
+
 @login_required
 def edit_profile_view(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -23,10 +30,24 @@ def edit_profile_view(request):
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
+            # Зберігаємо ненавантжувальні поля
+            profile = form.save(commit=False)
+
+            # Беремо файл з чистих даних
+            avatar_file = form.cleaned_data.get('avatar')
+            if avatar_file:
+                # Видаляємо поточне значення з __dict__, щоб спрацював дескриптор
+                if 'avatar' in profile.__dict__:
+                    del profile.__dict__['avatar']
+                # Тепер profile.avatar — це FieldFile, і в нього є .save()
+                profile.avatar.save(avatar_file.name, avatar_file)
+
+            # Фінальний save
+            profile.save()
             return redirect('user:profile', username=request.user.username)
     else:
         form = ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'form': form})
+
 

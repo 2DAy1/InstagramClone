@@ -9,7 +9,6 @@ from django.db import transaction
 
 import requests
 from faker import Faker
-import cloudinary.uploader
 
 from posts.models import Post, PostImage, Tag, PostTag, Comment, Like
 from user.models import Profile
@@ -21,10 +20,22 @@ class Command(BaseCommand):
     help = "Seed DB with users, avatars, posts+images, tags, comments, likes (images from Picsum)"
 
     def add_arguments(self, parser):
-        parser.add_argument('--users', type=int, default=2, help="Number of users")
-        parser.add_argument('--posts', type=int, default=3, help="Posts per user")
-        parser.add_argument('--comments', type=int, default=2, help="Comments per post")
-        parser.add_argument('--likes', type=int, default=2, help="Likes per post")
+        parser.add_argument(
+            '--users', type=int, default=2,
+            help="Number of users (default: 2 when no args passed)"
+        )
+        parser.add_argument(
+            '--posts', type=int, default=3,
+            help="Posts per user (default: 3)"
+        )
+        parser.add_argument(
+            '--comments', type=int, default=2,
+            help="Comments per post (default: 2)"
+        )
+        parser.add_argument(
+            '--likes', type=int, default=2,
+            help="Likes per post (default: 2)"
+        )
 
     def _fetch_image(self, width=400, height=300):
         seed = uuid.uuid4().hex
@@ -35,12 +46,16 @@ class Command(BaseCommand):
         return ContentFile(resp.content, name=name)
 
     def handle(self, *args, **options):
+        num_users = options['users']
+        num_posts = options['posts']
+        num_comments = options['comments']
+        num_likes = options['likes']
+
         User = get_user_model()
         seed_group, _ = Group.objects.get_or_create(name='seed')
 
         users = []
-        # 1) Створюємо користувачів + аватари
-        for _ in range(options['users']):
+        for _ in range(num_users):
             u = User.objects.create_user(
                 username=f"seed_{fake.user_name()}",
                 email=fake.email(),
@@ -49,43 +64,40 @@ class Command(BaseCommand):
             )
             u.groups.add(seed_group)
 
+            # Ensure Profile exists
             profile, _ = Profile.objects.get_or_create(user=u)
-            avatar_file = self._fetch_image(100, 100)
 
-            # Завантажуємо в Cloudinary
-            upload_res = cloudinary.uploader.upload(avatar_file)
-            # Записуємо public_id
-            profile.avatar = upload_res['public_id']
+            # Avatar 100×100 via CloudinaryField.save()
+            avatar_file = self._fetch_image(100, 100)
+            profile.avatar.save(avatar_file.name, avatar_file)
             profile.save()
 
             users.append(u)
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(users)} seed users"))
 
-        # 2) Генеруємо теги
         tag_names = list({fake.word() for _ in range(40)})[:20]
         tags = [Tag.objects.get_or_create(name=n)[0] for n in tag_names]
 
-        # 3) Для кожного користувача — пости, картинки, теги, коментарі, лайки
         for user in users:
-            for _ in range(options['posts']):
+            for _ in range(num_posts):
                 with transaction.atomic():
                     post = Post.objects.create(
                         author=user,
                         caption=fake.sentence(nb_words=12),
                     )
 
-                    # a) картинки
+                    # Save each image through CloudinaryField.save()
                     for _ in range(random.randint(1, 3)):
                         img_file = self._fetch_image()
-                        res = cloudinary.uploader.upload(img_file)
-                        PostImage.objects.create(post=post, image=res['public_id'])
+                        pi = PostImage(post=post)
+                        pi.image.save(img_file.name, img_file)
 
-                    # b) теги
-                    for tag in random.sample(tags, k=random.randint(1, 5)):
-                        PostTag.objects.get_or_create(post=post, tag=tag)
+                    # Assign tags
+                    for t in random.sample(tags, k=random.randint(1, 5)):
+                        PostTag.objects.get_or_create(post=post, tag=t)
 
-                    # c) коментарі
-                    for _ in range(options['comments']):
+                    # Create comments
+                    for _ in range(num_comments):
                         commenter = random.choice(users)
                         Comment.objects.create(
                             post=post,
@@ -93,8 +105,8 @@ class Command(BaseCommand):
                             content=fake.sentence(nb_words=8)
                         )
 
-                    # d) лайки
-                    for liker in random.sample(users, k=min(len(users), options['likes'])):
+                    # Create likes
+                    for liker in random.sample(users, k=min(len(users), num_likes)):
                         Like.objects.get_or_create(post=post, user=liker)
 
         self.stdout.write(self.style.SUCCESS("🎉 Seeding done!"))

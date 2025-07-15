@@ -5,11 +5,6 @@ from django.db.models import Exists, OuterRef, Prefetch
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.http import HttpResponse
-
-from PIL import Image as PilImage
-from io import BytesIO
-import requests
 
 from .forms import PostForm, CommentForm
 from .services import CreatePostService
@@ -64,31 +59,6 @@ def post_detail(request, pk):
     })
 
 
-def thumbnail_view(request, post_pk, image_pk):
-    img_obj = get_object_or_404(PostImage, pk=image_pk, post_id=post_pk)
-
-    # 1) Беремо публічний URL з CloudinaryField
-    img_url = img_obj.image.url
-
-    # 2) Завантажуємо байти через requests
-    resp = requests.get(img_url)
-    resp.raise_for_status()
-
-    # 3) Відкриваємо їх у Pillow
-    img = PilImage.open(BytesIO(resp.content))
-    img = img.convert('RGB')
-    img.thumbnail((300, 300), PilImage.Resampling.LANCZOS)
-
-    # 4) Віддаємо клієнту вже готовий JPEG
-    buf = BytesIO()
-    img.save(
-        buf,
-        format='JPEG',
-        quality=90,
-        optimize=True,
-        progressive=True
-    )
-    return HttpResponse(buf.getvalue(), content_type='image/jpeg')
 
 
 @login_required

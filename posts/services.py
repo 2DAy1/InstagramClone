@@ -1,6 +1,7 @@
-from posts.models import Post, PostImage, Tag, PostTag
 from typing import Optional
 from django.db import transaction
+from .models import Post, PostImage, Tag, PostTag
+
 
 class CreatePostService:
     def __init__(self, user, form):
@@ -21,9 +22,10 @@ class CreatePostService:
         self.post.save()
 
     def _save_images(self):
-        images = self.form.files.getlist("images")
-        for img in images:
-            PostImage.objects.create(post=self.post, image=img)
+        images = self.form.cleaned_data.get('images', [])
+        for f in images:
+            pi = PostImage(post=self.post)
+            pi.image.save(f.name, f)
 
     def _assign_tags(self):
         raw = self.form.cleaned_data['tags']

@@ -7,6 +7,5 @@ urlpatterns = [
     path('feed/', views.feed_view, name='feed'),
     path("create/", views.create_post, name='create'),
     path('<int:pk>/', views.post_detail, name='post_detail'),
-    path('<int:post_pk>/thumbnail/<int:image_pk>/', views.thumbnail_view, name='thumbnail'),
     path('<int:pk>/like-ajax/', views.like_post_ajax, name='like-ajax'),
 ]

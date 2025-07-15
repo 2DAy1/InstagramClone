@@ -33,7 +33,7 @@ def follow_toggle(request, username):
     target = get_object_or_404(User, username=username)
     if target == request.user:
         messages.error(request, "You cannot subscribe to yourself.")
-        return redirect(reverse('accounts:profile', kwargs={'username': username}))
+        return redirect(reverse('user:profile', kwargs={'username': username}))
 
     sub, created = Subscription.objects.get_or_create(
         subscriber=request.user,
