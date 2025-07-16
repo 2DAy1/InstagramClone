@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Subquery
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -13,37 +13,34 @@ from .models import Post, Comment, Like, PostImage
 
 
 User = get_user_model()
+
+
+
 @login_required
 def home_view(request):
     liked_subq = Like.objects.filter(post=OuterRef('pk'), user=request.user)
+    first_image = PostImage.objects.filter(post=OuterRef('pk')).order_by('id')
     posts = (
         Post.objects
             .annotate(is_liked=Exists(liked_subq))
+            .annotate(preview_image_url=Subquery(first_image.values('image')[:1]))
             .order_by('-created_at')
     )
     return render(request, 'posts/home.html', {'posts': posts})
+
 
 @login_required
 def create_post(request):
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            # Беремо завантажені файли прямо звідси
-            images = request.FILES.getlist("images")
-            tags = form.cleaned_data.get("tags", "")
-            caption = form.cleaned_data.get("caption", "")
-
-            # Передаємо масив файлів у сервіс
-            CreatePostService(
-                user=request.user,
-                caption=caption,
-                tags_raw=tags,
-                images=images
-            ).create()
+            CreatePostService(request.user, form).create()
             return redirect("posts:home")
     else:
         form = PostForm()
-    return render(request, "posts/create_post.html", {"form": form})
+    return render(request, 'posts/create_post.html', {"form":form})
+
+
 
 
 @login_required

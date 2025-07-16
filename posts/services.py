@@ -1,21 +1,11 @@
-# posts/services.py
-from typing import List, Optional
+from posts.models import Post, PostImage, Tag, PostTag
+from typing import Optional
 from django.db import transaction
 
-from .models import Post, PostImage, Tag, PostTag
-
 class CreatePostService:
-    def __init__(
-        self,
-        user,
-        caption: str,
-        tags_raw: str,
-        images: List,   # список InMemoryUploadedFile
-    ):
+    def __init__(self, user, form):
         self.user = user
-        self.caption = caption
-        self.tags_raw = tags_raw
-        self.images = images
+        self.form = form
         self.post: Optional[Post] = None
 
     def create(self):
@@ -26,20 +16,18 @@ class CreatePostService:
         return self.post
 
     def _create_post(self):
-        self.post = Post.objects.create(
-            author=self.user,
-            caption=self.caption
-        )
+        self.post = self.form.save(commit=False)
+        self.post.author = self.user
+        self.post.save()
 
     def _save_images(self):
-        for f in self.images:
-            # f тут гарантовано UploadedFile, не рядок
-            pi = PostImage(post=self.post)
-            pi.image.save(f.name, f)
-            # CloudinaryField/Storage сам зробить pi.save()
+        images = self.form.files.getlist("images")
+        objs = [PostImage(post=self.post, image=img) for img in images]
+        PostImage.objects.bulk_create(objs)
 
     def _assign_tags(self):
-        names = {t.strip().lower() for t in self.tags_raw.split(",") if t.strip()}
+        raw = self.form.cleaned_data['tags']
+        names = {t.strip().lower() for t in raw.split(',') if t.strip()}
         PostTag.objects.filter(post=self.post).exclude(tag__name__in=names).delete()
         for name in names:
             tag, _ = Tag.objects.get_or_create(name=name)

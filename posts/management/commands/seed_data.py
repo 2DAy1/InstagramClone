@@ -15,14 +15,13 @@ from user.models import Profile
 
 fake = Faker()
 
-
 class Command(BaseCommand):
     help = "Seed DB with users, avatars, posts+images, tags, comments, likes (images from Picsum)"
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--users', type=int, default=2,
-            help="Number of users (default: 2 when no args passed)"
+            help="Number of users (default: 2)"
         )
         parser.add_argument(
             '--posts', type=int, default=3,
@@ -38,6 +37,9 @@ class Command(BaseCommand):
         )
 
     def _fetch_image(self, width=400, height=300):
+        """
+        Download random image from Picsum.photos as ContentFile (suitable for CloudinaryField).
+        """
         seed = uuid.uuid4().hex
         url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
         resp = requests.get(url)
@@ -55,29 +57,31 @@ class Command(BaseCommand):
         seed_group, _ = Group.objects.get_or_create(name='seed')
 
         users = []
+        # --- Create users and avatars ---
         for _ in range(num_users):
-            u = User.objects.create_user(
-                username=f"seed_{fake.user_name()}",
-                email=fake.email(),
-                full_name=fake.name(),
+            username = f"seed_{fake.user_name()}"
+            email = fake.email()
+            full_name = fake.name()
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                full_name=full_name,
                 password="password123",
             )
-            u.groups.add(seed_group)
-
-            # Ensure Profile exists
-            profile, _ = Profile.objects.get_or_create(user=u)
-
-            # Avatar 100×100 via CloudinaryField.save()
+            user.groups.add(seed_group)
+            # Create Profile + avatar (CloudinaryField)
+            profile, _ = Profile.objects.get_or_create(user=user)
             avatar_file = self._fetch_image(100, 100)
             profile.avatar.save(avatar_file.name, avatar_file)
             profile.save()
-
-            users.append(u)
+            users.append(user)
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(users)} seed users"))
 
+        # --- Create tags ---
         tag_names = list({fake.word() for _ in range(40)})[:20]
         tags = [Tag.objects.get_or_create(name=n)[0] for n in tag_names]
 
+        # --- Create posts, images, tags, comments, likes ---
         for user in users:
             for _ in range(num_posts):
                 with transaction.atomic():
@@ -86,17 +90,17 @@ class Command(BaseCommand):
                         caption=fake.sentence(nb_words=12),
                     )
 
-                    # Save each image through CloudinaryField.save()
+                    # --- Images for post (1–3 random), через .image.save() ---
                     for _ in range(random.randint(1, 3)):
                         img_file = self._fetch_image()
-                        pi = PostImage(post=post)
-                        pi.image.save(img_file.name, img_file)
+                        post_image = PostImage(post=post)
+                        post_image.image.save(img_file.name, img_file, save=True)
 
-                    # Assign tags
+                    # --- Assign random tags to post ---
                     for t in random.sample(tags, k=random.randint(1, 5)):
                         PostTag.objects.get_or_create(post=post, tag=t)
 
-                    # Create comments
+                    # --- Comments (from random users) ---
                     for _ in range(num_comments):
                         commenter = random.choice(users)
                         Comment.objects.create(
@@ -105,8 +109,9 @@ class Command(BaseCommand):
                             content=fake.sentence(nb_words=8)
                         )
 
-                    # Create likes
-                    for liker in random.sample(users, k=min(len(users), num_likes)):
+                    # --- Likes (random users) ---
+                    like_users = random.sample(users, k=min(len(users), num_likes))
+                    for liker in like_users:
                         Like.objects.get_or_create(post=post, user=liker)
 
         self.stdout.write(self.style.SUCCESS("🎉 Seeding done!"))

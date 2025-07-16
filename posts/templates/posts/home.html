@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load cloudinary %}
+
 {% block content %}
 <div class="container mt-4">
   <h2 class="text-center mb-4">Latest Posts</h2>
@@ -24,17 +25,15 @@
         <p>{{ post.caption }}</p>
 
         <div class="post-item d-flex align-items-center mb-2">
-            {% with post.images.first as img %}
-              {% if img %}
-                <img
-                  src="{% cloudinary_url img.image.name width=150 height=150 crop='thumb' %}"
-                  alt="Post {{ post.id }} thumbnail"
-                  class="me-3"
-                  style="width:150px; height:150px; object-fit:cover;"
-                >
-              {% endif %}
-            {% endwith %}
-
+          {# --- Відображаємо тільки першу картинку поста --- #}
+          {% if post.preview_image_url %}
+            <img
+              src="{% cloudinary_url post.preview_image_url width=150 height=150 crop='thumb' %}"
+              alt="Post {{ post.id }} thumbnail"
+              class="me-3"
+              style="width:150px; height:150px; object-fit:cover;"
+            >
+          {% endif %}
 
           <a href="{% url 'posts:post_detail' post.pk %}"
              class="btn btn-outline-primary">
@@ -54,6 +53,7 @@
           </span>
         </div>
 
+        {# --- Вивід тегів поста --- #}
         {% with post.posttag_set.all as pts %}
           {% if pts %}
             <p class="mt-3">
