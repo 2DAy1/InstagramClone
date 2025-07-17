@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 {% load follow_tags %}
-
+{% load cloudinary %}
 {% block content %}
 <div class="container text-center">
-  <img src="{{ profile.avatar_url }}"
-       class="rounded-circle"
-       width="150"
-       height="150">
+
+<img src="{{ profile.avatar_url }}"
+     class="rounded-circle"
+     alt="Аватар профілю"
+     style="width: 150px; height: 150px; object-fit: cover;">
+
   <h2>{{ profile.user.username }}</h2>
   <p>{{ profile.bio }}</p>
 

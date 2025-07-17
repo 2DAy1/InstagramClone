@@ -6,14 +6,17 @@
   <h2 class="text-center mb-4">Latest Posts</h2>
 
   {% for post in posts %}
-    <div class="card mb-4">
+ <div class="card mb-4">
       <div class="card-header d-flex align-items-center">
-        <a href="{% url 'user:profile' username=post.author.username %}"
-           class="d-flex align-items-center text-decoration-none text-dark">
-          <img src="{{ post.author.profile.avatar_url }}"
-               alt="{{ post.author.username }}'s avatar"
-               class="rounded-circle me-2"
-               width="32" height="32">
+        <a href="{% url 'user:profile' username=post.author.username %}" class="d-flex align-items-center text-decoration-none text-dark">
+
+            <img
+              src="{{ post.author.profile.avatar_url }}"
+              alt="{{ post.author.username }} avatar"
+              class="rounded-circle me-2"
+              style="width:50px; height:50px; object-fit:cover;"
+            >
+
           <strong>{{ post.author.username }}</strong>
         </a>
         <small class="text-muted ms-auto">
@@ -25,7 +28,6 @@
         <p>{{ post.caption }}</p>
 
         <div class="post-item d-flex align-items-center mb-2">
-          {# --- Відображаємо тільки першу картинку поста --- #}
           {% if post.preview_image_url %}
             <img
               src="{% cloudinary_url post.preview_image_url width=150 height=150 crop='thumb' %}"

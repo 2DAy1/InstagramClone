@@ -10,10 +10,14 @@
         <div class="card-header d-flex align-items-center">
           <a href="{% url 'user:profile' username=post.author.username %}"
              class="d-flex align-items-center text-decoration-none text-dark">
-            <img src="{{ post.author.profile.avatar_url }}"
-                 alt="{{ post.author.username }}'s avatar"
-                 class="rounded-circle me-2"
-                 width="32" height="32">
+                    <a href="{% url 'user:profile' username=post.author.username %}" class="d-flex align-items-center text-decoration-none text-dark">
+
+            <img
+              src="{{ post.author.profile.avatar_url }}"
+              alt="{{ post.author.username }} avatar"
+              class="rounded-circle me-2"
+              style="width:50px; height:50px; object-fit:cover;"
+            >
             <strong>{{ post.author.username }}</strong>
           </a>
           <small class="text-muted ms-auto">

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cloudinary %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -12,12 +13,12 @@
         {% csrf_token %}
 
         <div class="text-center mb-3">
-           <img
-                src="{{ user.profile.avatar_url }}"
-                alt="Avatar"
-                class="rounded-circle"
-                style="width: 150px; height: 150px; object-fit: cover;"
-            >
+
+<img src="{{ profile.avatar_url }}"
+     class="rounded-circle"
+     alt="Аватар профілю"
+     style="width: 150px; height: 150px; object-fit: cover;">
+
             <br>
             <label for="id_avatar" class="btn btn-outline-secondary btn-sm">Change Profile Photo</label>
             {{ form.avatar }}
