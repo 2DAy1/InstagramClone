@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load cloudinary %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Latest Posts</h2>
+
+  {% for post in posts %}
+ <div class="card mb-4">
+      <div class="card-header d-flex align-items-center">
+        <a href="{% url 'user:profile' username=post.author.username %}" class="d-flex align-items-center text-decoration-none text-dark">
+
+            <img
+              src="{{ post.author.profile.avatar_url }}"
+              alt="{{ post.author.username }} avatar"
+              class="rounded-circle me-2"
+              style="width:50px; height:50px; object-fit:cover;"
+            >
+
+          <strong>{{ post.author.username }}</strong>
+        </a>
+        <small class="text-muted ms-auto">
+          {{ post.created_at|date:"M d, Y H:i" }}
+        </small>
+      </div>
+
+      <div class="card-body">
+        <p>{{ post.caption }}</p>
+
+        <div class="post-item d-flex align-items-center mb-2">
+          {% if post.preview_image_url %}
+            <img
+              src="{% cloudinary_url post.preview_image_url width=150 height=150 crop='thumb' %}"
+              alt="Post {{ post.id }} thumbnail"
+              class="me-3"
+              style="width:150px; height:150px; object-fit:cover;"
+            >
+          {% endif %}
+
+          <a href="{% url 'posts:post_detail' post.pk %}"
+             class="btn btn-outline-primary">
+            Переглянути
+          </a>
+        </div>
+
+        <div class="d-flex align-items-center">
+          <button type="button"
+                  class="btn btn-sm like-btn
+                         {% if post.is_liked %}btn-danger{% else %}btn-outline-primary{% endif %}"
+                  data-url="{% url 'posts:like-ajax' post.pk %}">
+            {% if post.is_liked %}Unlike{% else %}Like{% endif %}
+          </button>
+          <span class="ms-2">
+            <span class="like-count">{{ post.likes.count }}</span> ❤️
+          </span>
+        </div>
+
+        {# --- Вивід тегів поста --- #}
+        {% with post.posttag_set.all as pts %}
+          {% if pts %}
+            <p class="mt-3">
+              {% for pt in pts %}
+                <span class="badge bg-secondary">#{{ pt.tag.name }}</span>
+              {% endfor %}
+            </p>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  {% empty %}
+    <p>No posts yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

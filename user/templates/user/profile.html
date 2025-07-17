@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+{% load follow_tags %}
+{% load cloudinary %}
+{% block content %}
+<div class="container text-center">
+
+<img src="{{ profile.avatar_url }}"
+     class="rounded-circle"
+     alt="Аватар профілю"
+     style="width: 150px; height: 150px; object-fit: cover;">
+
+  <h2>{{ profile.user.username }}</h2>
+  <p>{{ profile.bio }}</p>
+
+  {% if request.user == profile.user %}
+  <div class="d-flex justify-content-center gap-4 mb-4">
+  <a href="{% url 'follow:followers' profile.user.username %}"
+     class="text-decoration-none">
+    <strong>{{ profile.user.followers_set.count }}</strong> Followers
+  </a>
+  <a href="{% url 'follow:following' profile.user.username %}"
+     class="text-decoration-none">
+    <strong>{{ profile.user.following_set.count }}</strong> Following
+  </a>
+</div>
+
+
+    <a href="{% url 'user:edit_profile' %}"
+       class="btn btn-primary mt-3">
+      Edit Profile
+    </a>
+    <a href="{% url 'accounts:logout' %}"
+       class="btn btn-outline-danger mt-3">
+      Logout
+    </a>
+  {% else %}
+    <div class="d-flex align-items-center justify-content-center mt-3">
+      {% follow_button profile.user %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

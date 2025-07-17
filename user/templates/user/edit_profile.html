@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load cloudinary %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="form-container mx-auto mt-5" style="max-width: 500px;">
+    <h3 class="text-center mb-4">Edit Profile</h3>
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <div class="text-center mb-3">
+
+<img src="{{ profile.avatar_url }}"
+     class="rounded-circle"
+     alt="Аватар профілю"
+     style="width: 150px; height: 150px; object-fit: cover;">
+
+            <br>
+            <label for="id_avatar" class="btn btn-outline-secondary btn-sm">Change Profile Photo</label>
+            {{ form.avatar }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.bio.label_tag }}
+            {% render_field form.bio class="form-control" placeholder="Your bio" %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.location.label_tag }}
+            {% render_field form.location class="form-control" placeholder="Your location" %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.birth_date.label_tag }}
+            {% render_field form.birth_date class="form-control" type="date" %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+</div>
+
+<style>
+    #id_avatar {
+        display: none;
+    }
+</style>
+{% endblock %}

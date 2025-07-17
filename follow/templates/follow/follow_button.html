@@ -1,0 +1,9 @@
+{% if is_following %}
+  <a href="{{ toggle_url }}" class="btn btn-outline-secondary ms-3">
+    Unsubscribe
+  </a>
+{% else %}
+  <a href="{{ toggle_url }}" class="btn btn-primary ms-3">
+    Subscribe
+  </a>
+{% endif %}

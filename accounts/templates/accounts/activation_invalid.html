@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="alert alert-danger">
+    Activation link is invalid or expired. <a href="{% url 'accounts:signup' %}">Sign up again</a>.
+  </div>
+{% endblock %}
