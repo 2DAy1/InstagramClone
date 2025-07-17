@@ -1,117 +1,149 @@
 import random
 import uuid
-
 from django.core.management.base import BaseCommand
-from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.db import transaction
-
-import requests
-from faker import Faker
-
+from posts.forms import PostForm, CommentForm
 from posts.models import Post, PostImage, Tag, PostTag, Comment, Like
 from user.models import Profile
+import requests
 
-fake = Faker()
+User = get_user_model()
+
+# =================== Функції ===================
+
+def fetch_image(width=400, height=300):
+    """Отримати картинку з picsum.photos як SimpleUploadedFile"""
+    seed = uuid.uuid4().hex
+    url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
+    resp = requests.get(url)
+    resp.raise_for_status()
+    name = f"{seed}.jpg"
+    return SimpleUploadedFile(
+        name=name,
+        content=resp.content,
+        content_type=resp.headers.get('Content-Type', 'image/jpeg')
+    )
+
+def create_user(i, group):
+    """Створює одного користувача, повертає User"""
+    user, created = User.objects.get_or_create(
+        username=f"testuser{i+1}",
+        defaults={
+            "email": f"testuser{i+1}@mail.com",
+            "phone_number": f"+3800000000{i+1}",
+            "full_name": f"Test User {i+1}",
+        }
+    )
+    user.groups.add(group)
+    Profile.objects.get_or_create(user=user)
+    return user
+
+def create_post(user, j):
+    """Створює пост через форму, повертає Post, tags_str і images"""
+    caption = f"Test post {j+1} by {user.username}"
+    tags_str = ', '.join([f"tag{random.randint(1,3)}" for _ in range(random.randint(1, 3))])
+    n_images = random.randint(1, 3)
+    images = [fetch_image() for _ in range(n_images)]
+
+    post_form = PostForm(
+        data={'caption': caption, 'tags': tags_str},
+        files={'images': images}
+    )
+    if post_form.is_valid():
+        post = post_form.save(commit=False)
+        post.author = user
+        post.save()
+        post_form.save_m2m()
+        return post, tags_str, images, None
+    else:
+        return None, tags_str, images, post_form.errors
+
+def attach_images_to_post(post, images):
+    """Привʼязати картинки до поста"""
+    for img in images:
+        PostImage.objects.create(post=post, image=img)
+
+def attach_tags_to_post(post, tags_str):
+    """Додає теги до поста"""
+    if tags_str:
+        for tag_str in [t.strip() for t in tags_str.split(',') if t.strip()]:
+            tag_obj, _ = Tag.objects.get_or_create(name=tag_str)
+            PostTag.objects.get_or_create(post=post, tag=tag_obj)
+
+def create_comment(post, commenter):
+    """Створити коментар через форму"""
+    comment_form = CommentForm(data={
+        'content': f"Test comment by {commenter.username} on post {post.id}"
+    })
+    if comment_form.is_valid():
+        comment = comment_form.save(commit=False)
+        comment.post = post
+        comment.author = commenter
+        comment.save()
+        return comment, None
+    else:
+        return None, comment_form.errors
+
+def create_like(post, liker):
+    """Створити лайк"""
+    Like.objects.get_or_create(post=post, user=liker)
+
+# =================== Management Command ===================
 
 class Command(BaseCommand):
-    help = "Seed DB with users, avatars, posts+images, tags, comments, likes (images from Picsum)"
+    help = "Seed test users, posts, likes, comments with images via forms"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '--users', type=int, default=2,
-            help="Number of users (default: 2)"
-        )
-        parser.add_argument(
-            '--posts', type=int, default=3,
-            help="Posts per user (default: 3)"
-        )
-        parser.add_argument(
-            '--comments', type=int, default=2,
-            help="Comments per post (default: 2)"
-        )
-        parser.add_argument(
-            '--likes', type=int, default=2,
-            help="Likes per post (default: 2)"
-        )
-
-    def _fetch_image(self, width=400, height=300):
-        """
-        Download random image from Picsum.photos as ContentFile (suitable for CloudinaryField).
-        """
-        seed = uuid.uuid4().hex
-        url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
-        resp = requests.get(url)
-        resp.raise_for_status()
-        name = f"{seed}.jpg"
-        return ContentFile(resp.content, name=name)
+        parser.add_argument('--users', type=int, default=2)
+        parser.add_argument('--posts', type=int, default=3)
+        parser.add_argument('--comments', type=int, default=2)
+        parser.add_argument('--likes', type=int, default=2)
 
     def handle(self, *args, **options):
-        num_users = options['users']
-        num_posts = options['posts']
-        num_comments = options['comments']
-        num_likes = options['likes']
+        users_count = options['users']
+        posts_per_user = options['posts']
+        comments_per_post = options['comments']
+        likes_per_post = options['likes']
 
-        User = get_user_model()
-        seed_group, _ = Group.objects.get_or_create(name='seed')
+        # 1. Users
+        group, _ = Group.objects.get_or_create(name='seed')
+        users = [create_user(i, group) for i in range(users_count)]
 
-        users = []
-        # --- Create users and avatars ---
-        for _ in range(num_users):
-            username = f"seed_{fake.user_name()}"
-            email = fake.email()
-            full_name = fake.name()
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                full_name=full_name,
-                password="password123",
-            )
-            user.groups.add(seed_group)
-            # Create Profile + avatar (CloudinaryField)
-            profile, _ = Profile.objects.get_or_create(user=user)
-            avatar_file = self._fetch_image(100, 100)
-            profile.avatar.save(avatar_file.name, avatar_file)
-            profile.save()
-            users.append(user)
-        self.stdout.write(self.style.SUCCESS(f"✅ Created {len(users)} seed users"))
-
-        # --- Create tags ---
-        tag_names = list({fake.word() for _ in range(40)})[:20]
-        tags = [Tag.objects.get_or_create(name=n)[0] for n in tag_names]
-
-        # --- Create posts, images, tags, comments, likes ---
+        # 2. Posts, Images, Tags
+        posts = []
         for user in users:
-            for _ in range(num_posts):
-                with transaction.atomic():
-                    post = Post.objects.create(
-                        author=user,
-                        caption=fake.sentence(nb_words=12),
-                    )
+            for j in range(posts_per_user):
+                post, tags_str, images, errors = create_post(user, j)
+                if post:
+                    attach_images_to_post(post, images)
+                    attach_tags_to_post(post, tags_str)
+                    posts.append(post)
+                    self.stdout.write(self.style.SUCCESS(
+                        f"Created post {post.id} for {user.username} ({len(images)} images, tags: {tags_str})"
+                    ))
+                else:
+                    self.stdout.write(self.style.ERROR(f"Помилка у формі Post: {errors}"))
 
-                    # --- Images for post (1–3 random), через .image.save() ---
-                    for _ in range(random.randint(1, 3)):
-                        img_file = self._fetch_image()
-                        post_image = PostImage(post=post)
-                        post_image.image.save(img_file.name, img_file, save=True)
+        # 3. Comments
+        for post in posts:
+            possible_commenters = [u for u in users if u != post.author]
+            for _ in range(comments_per_post):
+                commenter = random.choice(possible_commenters)
+                comment, errors = create_comment(post, commenter)
+                if comment:
+                    self.stdout.write(self.style.SUCCESS(
+                        f"Comment by {commenter.username} on post {post.id}"
+                    ))
+                else:
+                    self.stdout.write(self.style.ERROR(f"Помилка у формі Comment: {errors}"))
 
-                    # --- Assign random tags to post ---
-                    for t in random.sample(tags, k=random.randint(1, 5)):
-                        PostTag.objects.get_or_create(post=post, tag=t)
+        # 4. Likes
+        for post in posts:
+            possible_likers = [u for u in users if u != post.author]
+            likers = random.sample(possible_likers, min(likes_per_post, len(possible_likers)))
+            for liker in likers:
+                create_like(post, liker)
 
-                    # --- Comments (from random users) ---
-                    for _ in range(num_comments):
-                        commenter = random.choice(users)
-                        Comment.objects.create(
-                            post=post,
-                            author=commenter,
-                            content=fake.sentence(nb_words=8)
-                        )
-
-                    # --- Likes (random users) ---
-                    like_users = random.sample(users, k=min(len(users), num_likes))
-                    for liker in like_users:
-                        Like.objects.get_or_create(post=post, user=liker)
-
-        self.stdout.write(self.style.SUCCESS("🎉 Seeding done!"))
+        self.stdout.write(self.style.SUCCESS("✅ Seed data created!"))

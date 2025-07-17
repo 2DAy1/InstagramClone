@@ -17,13 +17,22 @@ def create_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
 
 
+
+def get_cloudinary_public_id(field):
+    """
+    Коректно отримує Cloudinary public_id з CloudinaryField або повертає None.
+    """
+    if hasattr(field, 'public_id'):
+        pid = field.public_id
+    else:
+        val = str(field) if field is not None else None
+        pid = val if isinstance(val, str) and val and val != 'None' else None
+    return pid
+
 @receiver(post_delete, sender=Profile)
 def delete_avatar_in_cloudinary(sender, instance, **kwargs):
-    """
-    Після видалення Profile в БД — видаляємо avatar у Cloudinary.
-    """
-    avatar_field = instance.avatar
-    pid = getattr(avatar_field, 'public_id', None) or str(avatar_field)
+    avatar_field = getattr(instance, 'avatar', None)
+    pid = get_cloudinary_public_id(avatar_field)
     if pid:
         try:
             destroy(pid, resource_type='image', invalidate=True)
