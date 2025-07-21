@@ -3,72 +3,63 @@
 {% block title %}{{ post.caption|truncatechars:20 }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-
-    <!-- Автор та заголовок -->
-    <div class="d-flex align-items-center mb-3">
-        <a href="{% url 'user:profile' username=post.author.username %}"
-           class="d-flex align-items-center text-decoration-none text-dark me-3">
-            <img src="{{ post.author.profile.avatar_url }}"
-                 alt="{{ post.author.username }}’s avatar"
-                 class="rounded-circle me-2"
-                 width="32" height="32">
-            <strong>{{ post.author.username }}</strong>
+<div class="main-content">
+  <div class="post-detail-wrapper" style="margin-top: 32px;">
+    <!-- Лівий блок: пост -->
+    <div class="post-detail-image-block">
+      <div class="post-detail-meta">
+        <a href="{% url 'user:profile' username=post.author.username %}" class="d-flex align-items-center text-decoration-none text-white">
+          <img src="{{ post.author.profile.avatar_url }}"
+               alt="{{ post.author.username }}’s avatar"
+               class="post-detail-avatar">
+          <span class="post-detail-username ms-2">{{ post.author.username }}</span>
         </a>
-        <small class="text-muted">
-            &middot; {{ post.created_at|date:"F j, Y, H:i" }}
-        </small>
-    </div>
-
-    <!-- Зображення поста -->
-    <div class="post-images mb-4">
+        <span class="post-detail-date ms-auto">
+          {{ post.created_at|date:"F j, Y, H:i" }}
+        </span>
+      </div>
+      <!-- Всі картинки поста -->
+      <div class="post-detail-images">
         {% for img in post.images.all %}
-            <img src="{{ img.image.url }}" alt="Post {{ post.id }}">
+          <img src="{{ img.image.url }}" alt="Post image" class="post-detail-img mb-3">
         {% endfor %}
-    </div>
-
-    <!-- Лайк -->
-    <div class="d-flex align-items-center mb-4">
-        <button type="button"
-                class="btn like-btn
-                   {% if post.is_liked %}btn-danger{% else %}btn-outline-primary{% endif %}"
+      </div>
+      <!-- Лайк -->
+      <div class="post-actions mt-2 d-flex align-items-center">
+      <button type="button"
+                class="like-btn btn-sm {% if post.is_liked %}btn-danger{% else %}btn-outline-primary{% endif %}"
                 data-url="{% url 'posts:like-ajax' post.pk %}">
-            {% if post.is_liked %}Unlike{% else %}Like{% endif %}
+          {% if post.is_liked %}Unlike{% else %}Like{% endif %}
         </button>
-        <span class="ms-2">
-      <span class="like-count">{{ post.likes.count }}</span> ❤️
-    </span>
+        <span class="like-count ms-2">{{ post.likes.count }}</span>
+        <span class="heart-icon ms-2">❤️</span>
+      </div>
     </div>
 
-    <!-- Коментарі -->
-    <div class="comments mb-4">
-        <h3>Comments ({{ post.comments.count }})</h3>
-        {% for comment in post.comments.all %}
-        <div class="mb-2">
-            <a href="{% url 'user:profile' username=comment.author.username %}"
-               class="fw-bold text-decoration-none text-dark me-1">
-                {{ comment.author.username }}
-            </a>
-            {{ comment.content }}
+    <!-- Правий блок: коментарі -->
+    <div class="comments-section">
+      <h4>Comments ({{ post.comments.count }})</h4>
+      {% for comment in post.comments.all %}
+        <div class="comment">
+          <a href="{% url 'user:profile' username=comment.author.username %}" class="fw-bold text-white me-1">
+            {{ comment.author.username }}
+          </a>
+          {{ comment.content }}
         </div>
-        {% empty %}
-        <p>No comments yet.</p>
-        {% endfor %}
-    </div>
+      {% empty %}
+        <div class="text-muted">No comments yet.</div>
+      {% endfor %}
 
-    <!-- Форма додавання коментаря -->
-    <div class="add-comment mb-5">
-        <h4>Add a comment</h4>
-        <form method="post">
-            {% csrf_token %}
-            {{ comment_form.content }}
-            <button type="submit" class="btn btn-primary mt-2">Post</button>
-        </form>
+      <form method="post" class="add-comment-form mt-3">
+        {% csrf_token %}
+        {{ comment_form.content }}
+        <button type="submit" class="btn btn-primary mt-2">Post</button>
+      </form>
     </div>
-
-    <!-- Повернутися до списку -->
-    <a href="{% url 'posts:home' %}" class="btn btn-secondary">
-        Back to all posts
-    </a>
+  </div>
+  <!-- Back button -->
+  <a href="{% url 'posts:home' %}" class="btn btn-secondary mt-4 ms-2">
+      Back to all posts
+  </a>
 </div>
 {% endblock %}

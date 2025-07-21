@@ -18,3 +18,6 @@ class MultipleImageField(forms.FileField):
         if isinstance(data, (list, tuple)):
             return [single_file_clean(d, initial) for d in data]
         return [single_file_clean(data, initial)]
+
+
+

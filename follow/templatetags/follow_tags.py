@@ -15,9 +15,10 @@ def follow_button(context, profile_user):
     is_following = request_user.following_set.filter(
         target=profile_user
     ).exists()
-    toggle_url = reverse('follow:toggle', kwargs={'username': profile_user.username})
+    toggle_url = reverse('follow:toggle-ajax', kwargs={'username': profile_user.username})
 
     return {
         'is_following': is_following,
         'toggle_url':   toggle_url,
+        'profile_user': profile_user,
     }
