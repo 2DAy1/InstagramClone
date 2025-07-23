@@ -30,6 +30,20 @@ def home_view(request):
 
 
 @login_required
+def feed_view(request):
+    following = request.user.following_set.values_list('target_id', flat=True)
+    first_image = PostImage.objects.filter(post=OuterRef('pk')).order_by('id')
+    qs = (
+        Post.objects
+            .filter(author_id__in=following)
+            .annotate(preview_image_url=Subquery(first_image.values('image')[:1]))
+            .select_related('author')
+            .order_by('-created_at')
+    )
+    return render(request, 'posts/feed.html', {'posts':qs})
+
+
+@login_required
 def create_post(request):
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
@@ -69,20 +83,7 @@ def post_detail(request, pk):
 
 
 
-@login_required
-def feed_view(request):
-    following = request.user.following_set.values_list('target_id', flat=True)
-    qs = (
-        Post.objects
-            .filter(author_id__in=following)
-            .select_related('author')
-            .prefetch_related(
-                'images',
-                Prefetch('comments', queryset=Comment.objects.select_related('author'))
-            )
-            .order_by('-created_at')
-    )
-    return render(request, 'posts/feed.html', {'posts':qs})
+
 
 @login_required
 @require_POST

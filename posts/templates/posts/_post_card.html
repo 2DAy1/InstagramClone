@@ -1,0 +1,59 @@
+{% load cloudinary %}
+<div class="post-card mb-4">
+
+  <div class="post-header d-flex align-items-center">
+    <a href="{% url 'user:profile' username=post.author.username %}" class="d-flex align-items-center text-decoration-none">
+      <img
+        src="{{ post.author.profile.avatar_url }}"
+        alt="{{ post.author.username }} avatar"
+        class="post-avatar me-2"
+        style="width:40px; height:40px; border-radius:50%; object-fit:cover;"
+      >
+      <span class="post-user">{{ post.author.username }}</span>
+    </a>
+    <span class="post-date ms-auto text-muted" style="font-size:13px;">
+      {{ post.created_at|date:"M d, Y H:i" }}
+    </span>
+  </div>
+
+  {% if post.preview_image_url %}
+  <div class="post-image-wrapper text-center mb-2">
+    <img
+      src="{% cloudinary_url post.preview_image_url width=650 height=450 crop='fill' %}"
+      alt="Post {{ post.id }}"
+      class="post-image-big"
+      style="max-width:100%; border-radius:14px;"
+    >
+  </div>
+  {% endif %}
+
+  <div class="post-actions mt-2 d-flex align-items-center">
+    <button type="button"
+            class="like-btn btn-sm
+              {% if post.is_liked %}btn-danger{% else %}btn-outline-primary{% endif %}"
+            data-url="{% url 'posts:like-ajax' post.pk %}">
+      {% if post.is_liked %}Unlike{% else %}Like{% endif %}
+    </button>
+    <span class="like-count ms-2">{{ post.likes.count }}</span>
+    <span class="heart-icon ms-2">❤️</span>
+  </div>
+
+  <div class="post-content mt-2 mb-2">{{ post.caption }}</div>
+
+  <!-- Теги -->
+  {% with post.posttag_set.all as pts %}
+    {% if pts %}
+      <div class="mt-2">
+        {% for pt in pts %}
+          <span class="badge bg-secondary">#{{ pt.tag.name }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Кнопка Переглянути в самому низу -->
+  <a href="{% url 'posts:post_detail' post.pk %}"
+     class="btn btn-outline-primary w-100 mt-3">
+    Переглянути
+  </a>
+</div>

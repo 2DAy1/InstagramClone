@@ -1,9 +1,6 @@
-{% if is_following %}
-  <a href="{{ toggle_url }}" class="btn btn-outline-secondary ms-3">
-    Unsubscribe
-  </a>
-{% else %}
-  <a href="{{ toggle_url }}" class="btn btn-primary ms-3">
-    Subscribe
-  </a>
-{% endif %}
+<button
+  type="button"
+  class="follow-btn btn {% if is_following %}btn-outline-secondary{% else %}btn-primary{% endif %} ms-3"
+  data-url="{% url 'follow:toggle-ajax' username=profile_user.username%}">
+  {% if is_following %}Unsubscribe{% else %}Subscribe{% endif %}
+</button>

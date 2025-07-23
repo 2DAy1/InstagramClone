@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib import messages
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from .models import Subscription
 
@@ -29,20 +29,21 @@ def following_list(request, username):
     })
 
 @login_required
-def follow_toggle(request, username):
+@require_POST
+def follow_toggle_ajax(request, username):
     target = get_object_or_404(User, username=username)
     if target == request.user:
-        messages.error(request, "You cannot subscribe to yourself.")
-        return redirect(reverse('user:profile', kwargs={'username': username}))
+        return JsonResponse({'error': "You cannot subscribe to yourself."}, status=400)
 
-    sub, created = Subscription.objects.get_or_create(
-        subscriber=request.user,
-        target=target
-    )
+    sub, created = Subscription.objects.get_or_create(subscriber=request.user, target=target)
     if not created:
         sub.delete()
-        messages.success(request, f"You have unsubscribed from {username}.")
+        is_following = False
     else:
-        messages.success(request, f"You are now subscribed to {username}.")
+        is_following = True
 
-    return redirect(reverse('user:profile', kwargs={'username': username}))
+    followers_count = Subscription.objects.filter(target=target).count()
+    return JsonResponse({
+        'is_following': is_following,
+        'followers_count': followers_count,
+    })

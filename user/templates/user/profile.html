@@ -15,10 +15,10 @@
 
   {% if request.user == profile.user %}
   <div class="d-flex justify-content-center gap-4 mb-4">
-  <a href="{% url 'follow:followers' profile.user.username %}"
-     class="text-decoration-none">
-    <strong>{{ profile.user.followers_set.count }}</strong> Followers
-  </a>
+    <a href="{% url 'follow:followers' profile.user.username %}" class="text-decoration-none">
+      <strong class="followers-count">{{ profile.user.followers_set.count }}</strong> Followers
+    </a>
+
   <a href="{% url 'follow:following' profile.user.username %}"
      class="text-decoration-none">
     <strong>{{ profile.user.following_set.count }}</strong> Following
