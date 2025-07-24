@@ -1,0 +1,175 @@
+<!doctype html>
+{% load static %}
+{% load widget_tweaks %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login • Instagram</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+          min-height: 100vh;
+          background: #000;
+          color: #fff;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .login-vertical-center {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        .login-wrapper {
+          width: 100vw;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .login-card {
+          background: #181818;
+          border-radius: 22px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+          padding: 46px 38px 34px 38px;
+          max-width: 370px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          border: 1px solid #232323;
+        }
+        .login-card img.logo {
+          margin-bottom: 24px;
+        }
+        .login-card form {
+          width: 100%;
+        }
+        .login-card input.form-control,
+        .login-card input.form-control:focus {
+          color: #fff !important;
+          background: #222;
+          border: 1px solid #333;
+          border-radius: 8px;
+          font-size: 15px;
+          padding: 14px 12px;
+          margin-bottom: 10px;
+        }
+        .login-card input.form-control::placeholder {
+          color: #ddd !important;
+          opacity: 1;
+        }
+        .btn-blue {
+          width: 100%;
+          background: #0095f6;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          transition: background 0.13s;
+        }
+        .btn-blue:hover { background: #1877f2; }
+        .login-card .text-muted { color: #aaa !important; }
+        .login-card .text-danger { color: #ff4444 !important; }
+        .login-card .text-primary { color: #0095f6 !important; }
+        .or-separator {
+          color: #999;
+          margin: 16px 0 14px 0;
+          font-size: 13px;
+          font-weight: 500;
+        }
+        .social-login,
+        .extra-links {
+          width: 100%;
+          text-align: center;
+          margin-bottom: 7px;
+        }
+        .login-extra {
+          background: #181818;
+          border: 1px solid #232323;
+          border-radius: 22px;
+          max-width: 370px;
+          width: 100%;
+          margin: 18px auto 0 auto;
+          padding: 18px 0 12px 0;
+          text-align: center;
+        }
+        .login-extra a {
+          color: #0095f6 !important;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        .login-extra a:hover {
+          text-decoration: underline;
+        }
+        .get-app-wrapper {
+          margin-top: 28px;
+        }
+        @media (max-width: 500px) {
+          .login-card, .login-extra {
+            max-width: 96vw;
+            padding: 28px 4vw 18px 4vw;
+          }
+        }
+    </style>
+</head>
+<body>
+<div class="login-vertical-center">
+  <div class="login-wrapper">
+    <div class="login-card text-center">
+      <img src="{% static 'img/instagram-logo.png' %}" alt="Instagram" width="150" class="logo mb-3">
+
+      <form method="POST" novalidate>
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+
+          {% for field in form %}
+          <div class="mb-2">
+              {% render_field field class="form-control" placeholder=field.label %}
+              {% for error in field.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+          </div>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-blue w-100">Log in</button>
+      </form>
+
+      <div class="or-separator">OR</div>
+      <div class="social-login mb-1">
+        <a href="{% url 'social:begin' 'github' %}" class="text-primary">Log in with Github</a>
+      </div>
+      <div class="extra-links mb-1">
+        <a href="#" class="text-muted small">Forgot password?</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-extra">
+    <p class="m-0 text-white">
+      Don't have an account?
+      <a href="{% url 'accounts:signup' %}" class="text-primary">Sign up</a>
+    </p>
+  </div>
+
+  <div class="get-app-wrapper text-center">
+      <p class="text-muted">Get the app.</p>
+      <div class="d-flex justify-content-center gap-2">
+          <a href="https://play.google.com/store/apps/details?id=com.instagram.android">
+              <img src="{% static 'img/google-playstore.png' %}" height="40">
+          </a>
+          <a href="https://apps.microsoft.com/store/detail/instagram/9NBLGGH5L9XT">
+              <img src="{% static 'img/microsoft.png' %}" height="40">
+          </a>
+      </div>
+  </div>
+</div>
+</body>
+</html>
