@@ -4,9 +4,9 @@ from django.core.management.base import BaseCommand
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from backend.posts.forms import PostForm, CommentForm
-from backend.posts.models import PostImage, Tag, PostTag, Like
-from backend.user.models import Profile
+from posts.forms import PostForm, CommentForm
+from posts.models import PostImage, Tag, PostTag, Like
+from user.models import Profile
 import requests
 
 User = get_user_model()
