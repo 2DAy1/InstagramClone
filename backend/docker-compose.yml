@@ -1,0 +1,15 @@
+services:
+  web:
+    build: ..
+    env_file:
+      - .env.dev
+    command:
+      - gunicorn
+      - --bind
+      - 0.0.0.0:8000
+      - src.wsgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
